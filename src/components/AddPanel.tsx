@@ -1,16 +1,18 @@
 import React from 'react'
 import AddButton from './AddButton';
 import { ReqAddMarker } from '../app/page';
+import GpsFixedButton from './GpsFixedButton';
 
 type propsAddButton = {
   addMode:boolean;
   onClick: () => void;
   position: ReqAddMarker | null
+  onNowPosition: () => void;
 }
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
-const AddPanel = ({addMode, onClick, position}:propsAddButton) => {
+const AddPanel = ({addMode, onClick, position, onNowPosition}:propsAddButton) => {
 
   const handleSubmit = async (item:ReqAddMarker) => {
     const res = await fetch(`${API_URL}/map/marker/insert`, {
@@ -27,7 +29,10 @@ const AddPanel = ({addMode, onClick, position}:propsAddButton) => {
 
   return (
     <div className='bg-gray-50 w-[80%] h-fit  z-10 rounded-lg absolute bottom-0 left-[50%] flex flex-col items-center p-6 gap-4' style={{translate: addMode ? '-50% 0' : '-50% 100%'}}>
-      <AddButton addMode={addMode} onClick={onClick}/>
+      <div className='absolute top-[-150%] right-[5%] z-50 flex gap-6'>
+        <AddButton addMode={addMode} onClick={onClick}/>
+        <GpsFixedButton onClick={onNowPosition}/>
+      </div>
       {position && (
         <>
           <div className='w-full text-xl'>{position.name}</div>
