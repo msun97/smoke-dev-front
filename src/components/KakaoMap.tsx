@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef } from 'react';
+import { useEffect, useState } from 'react';
 import { Map, MapMarker, useKakaoLoader } from 'react-kakao-maps-sdk';
 import { Position, ReqAddMarker } from '../app/page';
 import { useMapCenter } from '../hooks/useMapCenter';
@@ -21,19 +21,19 @@ const KakaoMap = ({ addMode, clientPoint, onChange }: PropsKakaoMap) => {
     libraries: ['services'],
   });
 
-  const mapRef = useRef<kakao.maps.Map | null>(null);
+  const [map, setMap] = useState<kakao.maps.Map | null>(null);
 
   // 마커 데이터 fetch
   const markerData = useMarkerData();
 
   // 지도 중심 변경 이벤트 처리 함수
-  const { onCenterChanged } = useMapCenter({ addMode, onChange });
+  const { onCenterChanged } = useMapCenter({ map, addMode, onChange });
 
   // 현재 위치 버튼을 누를 때마다(같은 좌표여도 새 객체) 해당 위치로 이동
   useEffect(() => {
-    if (!clientPoint || !mapRef.current) return;
-    mapRef.current.panTo(new kakao.maps.LatLng(clientPoint.lat, clientPoint.lng));
-  }, [clientPoint]);
+    if (!clientPoint || !map) return;
+    map.panTo(new kakao.maps.LatLng(clientPoint.lat, clientPoint.lng));
+  }, [clientPoint, map]);
 
   if (loading) return null;
 
@@ -41,7 +41,7 @@ const KakaoMap = ({ addMode, clientPoint, onChange }: PropsKakaoMap) => {
     <Map
       center={DEFAULT_CENTER}
       style={{ width: "100%", height: "100%", overflow: "hidden" }}
-      onCreate={(map) => { mapRef.current = map; }}
+      onCreate={setMap}
       onCenterChanged={onCenterChanged}
     >
       {markerData?.positions?.map((item, index) => (

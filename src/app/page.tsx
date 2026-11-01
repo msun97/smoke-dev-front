@@ -33,6 +33,8 @@ const Home: NextPage = () => {
   }
 
   const handleAddMode = () => {
+    // 이전에 잡힌 위치가 다음 추가 모드에 남지 않도록 초기화 (진입 시 현재 중심으로 다시 계산됨)
+    setSavePoint(null);
     setIsAddMode(prev => !prev)
   }
   return (
