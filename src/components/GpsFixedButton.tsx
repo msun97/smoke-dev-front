@@ -8,7 +8,7 @@ type PropsGpsFixedButton = {
 const GpsFixedButton = ({onClick}:PropsGpsFixedButton) => {
   return (
     <button 
-      className=' w-10 h-10 rounded-full bg-gray-50 text-[20px] shadow-md hover:bg-gray-100 flex items-center justify-center' 
+      className='w-10 h-10 rounded-full bg-white text-gray-900 text-[20px] shadow-md hover:bg-gray-100 cursor-pointer flex items-center justify-center' 
       aria-label='현재 위치로 이동'  
       onClick={onClick}
     >

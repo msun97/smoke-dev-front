@@ -1,12 +1,12 @@
 "use client";
 
-import Script from 'next/script';
-import { Map, MapMarker } from 'react-kakao-maps-sdk';
+import { useEffect, useRef } from 'react';
+import { Map, MapMarker, useKakaoLoader } from 'react-kakao-maps-sdk';
 import { Position, ReqAddMarker } from '../app/page';
 import { useMapCenter } from '../hooks/useMapCenter';
 import { useMarkerData } from '../hooks/useMarkerData';
 
-const KAKAO_SDK_URL = `https://dapi.kakao.com/v2/maps/sdk.js?appkey=${process.env.NEXT_PUBLIC_KAKAO_APP_JS_KEY}&libraries=services&autoload=false`;
+const DEFAULT_CENTER = { lat: 33.5563, lng: 126.79581 };
 
 type PropsKakaoMap = {
   addMode: boolean;
@@ -15,6 +15,13 @@ type PropsKakaoMap = {
 };
 
 const KakaoMap = ({ addMode, clientPoint, onChange }: PropsKakaoMap) => {
+  // 카카오맵 SDK 로드
+  const [loading] = useKakaoLoader({
+    appkey: process.env.NEXT_PUBLIC_KAKAO_APP_JS_KEY!,
+    libraries: ['services'],
+  });
+
+  const mapRef = useRef<kakao.maps.Map | null>(null);
 
   // 마커 데이터 fetch
   const markerData = useMarkerData();
@@ -22,20 +29,25 @@ const KakaoMap = ({ addMode, clientPoint, onChange }: PropsKakaoMap) => {
   // 지도 중심 변경 이벤트 처리 함수
   const { onCenterChanged } = useMapCenter({ addMode, onChange });
 
+  // 현재 위치 버튼을 누를 때마다(같은 좌표여도 새 객체) 해당 위치로 이동
+  useEffect(() => {
+    if (!clientPoint || !mapRef.current) return;
+    mapRef.current.panTo(new kakao.maps.LatLng(clientPoint.lat, clientPoint.lng));
+  }, [clientPoint]);
+
+  if (loading) return null;
+
   return (
-    <>
-      {/* 카카오맵 SDK 로드 */}
-      <Script src={KAKAO_SDK_URL} strategy="beforeInteractive" defer />
-      <Map
-        center={clientPoint ?? { lat: 33.5563, lng: 126.79581 }}
-        style={{ width: "100%", height: "100%", overflow: "hidden" }}
-        onCenterChanged={onCenterChanged}
-      >
-        {markerData?.positions?.map((item, index) => (
-          <MapMarker key={index} position={item} />
-        ))}
-      </Map>
-    </>
+    <Map
+      center={DEFAULT_CENTER}
+      style={{ width: "100%", height: "100%", overflow: "hidden" }}
+      onCreate={(map) => { mapRef.current = map; }}
+      onCenterChanged={onCenterChanged}
+    >
+      {markerData?.positions?.map((item, index) => (
+        <MapMarker key={index} position={item} />
+      ))}
+    </Map>
   );
 };
 

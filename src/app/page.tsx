@@ -24,7 +24,6 @@ const Home: NextPage = () => {
   const [clientPoint, setClientPoint] = useState<Position|null>(null);
 
   const handleSetNowPoint = () => {
-    setClientPoint(null);
     if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition((position) => setClientPoint({lat: position.coords.latitude, lng:position.coords.longitude}));
     }
@@ -38,11 +37,12 @@ const Home: NextPage = () => {
   }
   return (
     
-      <main className="w-screen h-screen overflow-hidden relative">
+      <main className="relative h-dvh w-full overflow-hidden">
         <KakaoMap addMode={isAddMode} clientPoint={clientPoint} onChange={handleChangeCenter}/>
         <AddPanel addMode={isAddMode} onClick={handleAddMode} position={savePoint} onNowPosition={handleSetNowPoint}/>
         {isAddMode && (
-            <div className='absolute left-1/2 top-1/2 z-10'>  
+            // 핀 끝(이미지 하단 중앙)이 지도 중심에 오도록 정렬, 지도 드래그를 막지 않도록 pointer-events-none
+            <div className='pointer-events-none absolute left-1/2 top-1/2 z-10 -translate-x-1/2 -translate-y-full'>
               <Image      
                   src={'/map_marker.svg'}
                   alt="marker"
