@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useState } from 'react'
 import AddButton from './AddButton';
 import { ReqAddMarker } from '../app/page';
 import GpsFixedButton from './GpsFixedButton';
@@ -8,23 +8,37 @@ type propsAddButton = {
   onClick: () => void;
   position: ReqAddMarker | null
   onNowPosition: () => void;
+  onSaved: () => void;
+  onError: (message: string) => void;
 }
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
-const AddPanel = ({addMode, onClick, position, onNowPosition}:propsAddButton) => {
+const AddPanel = ({addMode, onClick, position, onNowPosition, onSaved, onError}:propsAddButton) => {
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleSubmit = async (item:ReqAddMarker) => {
-    const res = await fetch(`${API_URL}/map/marker/insert`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(item),
-    });
+    // 저장 중 중복 클릭 방지
+    if (isSubmitting) return;
+    setIsSubmitting(true);
 
-    const data = await res.json();
-    console.log(data);
+    try {
+      const res = await fetch(`${API_URL}/map/marker/insert`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(item),
+      });
+      if (!res.ok) throw new Error(`marker insert failed: ${res.status}`);
+
+      onSaved();
+    } catch (e) {
+      console.error(e);
+      onError('저장에 실패했어요. 잠시 후 다시 시도해주세요.');
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -45,14 +59,15 @@ const AddPanel = ({addMode, onClick, position, onNowPosition}:propsAddButton) =>
             <div className='w-full text-xl font-semibold'>{position.name}</div>
             <div className='w-full text-base text-gray-600'>{position.address}</div>
             <button
-              className='w-full bg-blue-300 rounded-2xl p-4 text-xl hover:bg-blue-400 cursor-pointer'
+              className='w-full bg-blue-300 rounded-2xl p-4 text-xl hover:bg-blue-400 cursor-pointer disabled:cursor-not-allowed disabled:opacity-50'
+              disabled={isSubmitting}
               onClick={() => handleSubmit({
                 lat: position.lat,
                 lng: position.lng,
                 address: position.address,
                 name: position.name
               })}>
-                저장하기
+                {isSubmitting ? '저장 중...' : '저장하기'}
               </button>
           </>
         ) : (

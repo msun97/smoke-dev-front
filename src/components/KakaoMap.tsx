@@ -4,17 +4,17 @@ import { useEffect, useState } from 'react';
 import { Map, MapMarker, useKakaoLoader } from 'react-kakao-maps-sdk';
 import { Position, ReqAddMarker } from '../app/page';
 import { useMapCenter } from '../hooks/useMapCenter';
-import { useMarkerData } from '../hooks/useMarkerData';
 
 const DEFAULT_CENTER = { lat: 33.5563, lng: 126.79581 };
 
 type PropsKakaoMap = {
+  markers: Position[];
   addMode: boolean;
   clientPoint: Position | null;
   onChange: (item: ReqAddMarker) => void;
 };
 
-const KakaoMap = ({ addMode, clientPoint, onChange }: PropsKakaoMap) => {
+const KakaoMap = ({ markers, addMode, clientPoint, onChange }: PropsKakaoMap) => {
   // 카카오맵 SDK 로드
   const [loading] = useKakaoLoader({
     appkey: process.env.NEXT_PUBLIC_KAKAO_APP_JS_KEY!,
@@ -22,9 +22,6 @@ const KakaoMap = ({ addMode, clientPoint, onChange }: PropsKakaoMap) => {
   });
 
   const [map, setMap] = useState<kakao.maps.Map | null>(null);
-
-  // 마커 데이터 fetch
-  const markerData = useMarkerData();
 
   // 지도 중심 변경 이벤트 처리 함수
   const { onCenterChanged } = useMapCenter({ map, addMode, onChange });
@@ -44,7 +41,7 @@ const KakaoMap = ({ addMode, clientPoint, onChange }: PropsKakaoMap) => {
       onCreate={setMap}
       onCenterChanged={onCenterChanged}
     >
-      {markerData?.positions?.map((item, index) => (
+      {markers.map((item, index) => (
         <MapMarker key={index} position={item} />
       ))}
     </Map>
